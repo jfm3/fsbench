@@ -1,0 +1,29 @@
+fsbench is a program to take straightforward file i/o benchmarks from
+a user space process to a single file in the file system.  It reports
+benchmarks in the form of elapsed times for several individual tests,
+for which file sizes, chunk sizes, and random seek counts can be
+specified on the command line.  See the file fsbench.c for detailed
+description of the benchmarks.
+
+fsbench has only ever been expected to work on Linux.
+
+To compile:
+
+    make
+
+To run:
+
+    sudo nice -n -20 ./fsbench
+
+To run on a particular file system, come up with a name for a new file
+on that file system, and:
+
+    ./fsbench -f /path/newfile
+
+fsbench will print out its various settings when run, and how to
+change them with command line arguments for future runs.  All
+randomness in benchmarks is deterministic with respect to a single
+random number seed.
+
+The author actively seeks criticisms, patches, and ports.  For
+immediate service, email fsbench at jfm3 dot org.
