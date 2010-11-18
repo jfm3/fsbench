@@ -470,6 +470,44 @@ static struct moment benchmark_seek_write(const char *file_name,
   return (result);
 }
 
+static struct moment benchmark_seek_write_sync(const char *file_name,
+  long int file_size, long int chunk_size, long int n_seeks)
+{
+  int fd = -1;
+  int i = 0;
+  int seek_to = 0;
+  char *chunk_buffer = NULL;
+  struct moment start;
+  struct moment end;
+  struct moment result;
+  memset(&start, 0, sizeof (struct moment));
+  memset(&end, 0, sizeof (struct moment));
+  memset(&result, 0, sizeof (struct moment));
+
+  fd = open_or_exit(file_name);
+  chunk_buffer = malloc_or_exit(chunk_size);
+  memset(chunk_buffer, 0, chunk_size);
+  for (i = 0; i < file_size; i++) {
+    write_or_exit(fd, chunk_buffer, chunk_size);
+  }
+  fsync_or_exit(fd);
+  times(&start.cpu);
+  gettimeofday(&start.real, NULL);
+  for (i = 0; i < n_seeks; i++) {
+    seek_to = random_to((file_size * chunk_size) - chunk_size);
+    lseek_or_exit(fd, seek_to);
+    write_or_exit(fd, chunk_buffer, chunk_size);
+    fsync_or_exit(fd);
+  }
+  gettimeofday(&end.real, NULL);
+  times(&end.cpu);
+  free(chunk_buffer);
+  close_or_exit(fd);
+  unlink_or_exit(file_name);
+  result = duration(start, end);
+  return (result);
+}
+
 static void check_priority()
 {
   int nice = getpriority_or_exit();
