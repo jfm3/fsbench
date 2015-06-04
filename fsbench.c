@@ -53,7 +53,7 @@
 // implementor is pathological, you've got bigger problems.
 
 #ifndef VERSION
-#define VERSION "1"
+#define VERSION "2"
 #endif
 
 #define _XOPEN_SOURCE 600
@@ -94,6 +94,8 @@
 #define EXIT_CANT_FSYNC 10
 #define EXIT_CANT_GETPRIORITY 11
 #define EXIT_CANT_OPEN_LOADAVG 12
+// Defines for times that are very fast, and need a loop to capture a time
+#define ALLOCATIONAVG 100000
 
 static void *malloc_or_exit(size_t size)
 {
@@ -323,6 +325,7 @@ static struct moment benchmark_fallocate(const char *file_name,
   struct moment start;
   struct moment end;
   struct moment result;
+  int x;
   memset(&start, 0, sizeof (struct moment));
   memset(&end, 0, sizeof (struct moment));
   memset(&result, 0, sizeof (struct moment));
@@ -330,8 +333,11 @@ static struct moment benchmark_fallocate(const char *file_name,
   fd = open_or_exit(file_name);
   times(&start.cpu);
   gettimeofday(&start.real, NULL);
-  posix_fallocate_or_exit(fd, 0, file_size * chunk_size);
-  fsync_or_exit(fd);
+  for(x=0;x<ALLOCATIONAVG;x++)
+  {
+     posix_fallocate_or_exit(fd, 0, file_size * chunk_size);
+     fsync_or_exit(fd);
+  }
   gettimeofday(&end.real, NULL);
   times(&end.cpu);
   close_or_exit(fd);
